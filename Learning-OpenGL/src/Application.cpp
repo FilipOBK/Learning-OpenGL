@@ -5,6 +5,7 @@
 #include <chrono>
 #include <array>
 
+#include "Renderer.h"
 #include "tools.h"
 #include "VertexBufferLayout.h"
 
@@ -73,22 +74,20 @@ int main(void)
     GLCALL(glBindBuffer(GL_ARRAY_BUFFER, 0));
     GLCALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 
+    Renderer renderer;
+
     auto base_time = std::chrono::system_clock::now();
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
-        /* Render here */
-        glClear(GL_COLOR_BUFFER_BIT);
+        renderer.Clear();
 
         shader->Bind();
         shader->SetUniform2f("u_Resolution", RESOLUTION_WIDTH, RESOLUTION_HEIGHT);
         float time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - base_time).count();
         shader->SetUniform1f("u_Time", time_ms / 1000.f);
 
-        vertex_array->Bind();
-        index_buffer->Bind();
-
-        GLCALL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL)); // nullptr because it is bound
+        renderer.Draw(*vertex_array, *index_buffer, *shader);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
