@@ -12,6 +12,7 @@
 #include "VertexArray.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "Texture.h"
 #include "Shader.h"
 
 #define RESOLUTION_WIDTH 1920
@@ -44,11 +45,11 @@ int main(void)
 
 
 
-    std::array<float, 8> positions = {
-        -1, -1, // 0
-         1, -1, // 1
-         1,  1, // 2
-        -1,  1  // 3
+    std::array<float, 16> positions = {
+        -0.5, -0.5, 0.0, 0.0, // 0
+         0.5, -0.5, 1.0, 0.0, // 1
+         0.5,  0.5, 1.0, 1.0, // 2
+        -0.5,  0.5, 0.0, 1.0  // 3
     };
 
     std::array<uint32_t, 6> indices = {
@@ -56,17 +57,24 @@ int main(void)
         2, 3, 0
     };
 
+    GLCALL(glEnable(GL_BLEND));
+    GLCALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
     VertexArray* vertex_array = new VertexArray();
     VertexBuffer* vertex_buffer =  new VertexBuffer(positions.data(), sizeof(positions));
 
     VertexBufferLayout layout;
-    layout.Push<float>(2U);
+    layout.Push<float>(2);
+    layout.Push<float>(2);
     vertex_array->AddBuffer(*vertex_buffer, layout);
 
     IndexBuffer* index_buffer = new IndexBuffer(indices.data(), indices.size());
-    Shader* shader = new Shader(RESOURCE_DIR "shaders\\VertexShader.vert", RESOURCE_DIR "shaders\\FragmentShader.frag");
+    Shader* shader = new Shader(RESOURCE_DIR "shaders\\VertexShader.shader", RESOURCE_DIR "shaders\\FragmentShader.shader");
+    // shader->SetUniform2f("u_Resolution", RESOLUTION_WIDTH, RESOLUTION_HEIGHT);
 
-
+    Texture* texture = new Texture("resources/textures/img.png");
+    texture->Bind();
+    shader->SetUniform1i("u_Texture", 0);
 
     // Unbind all
     GLCALL(glBindVertexArray(0));
@@ -83,9 +91,8 @@ int main(void)
         renderer.Clear();
 
         shader->Bind();
-        shader->SetUniform2f("u_Resolution", RESOLUTION_WIDTH, RESOLUTION_HEIGHT);
         float time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - base_time).count();
-        shader->SetUniform1f("u_Time", time_ms / 1000.f);
+        // shader->SetUniform1f("u_Time", time_ms / 1000.f);
 
         renderer.Draw(*vertex_array, *index_buffer, *shader);
 
@@ -100,6 +107,7 @@ int main(void)
     delete vertex_buffer;
     delete index_buffer;
     delete shader;
+    delete texture;
 
     // ! Ensure all OpenGL objects are deleted before this point
     //      Cannot call glDeleteBuffer without valid GL context

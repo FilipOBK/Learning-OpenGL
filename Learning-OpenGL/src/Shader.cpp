@@ -24,15 +24,22 @@ void Shader::Unbind() const
 	GLCALL(glUseProgram(0));
 }
 
+void Shader::SetUniform1i(const std::string& name, int x) const
+{
+    
+    GLint location = GetUniformLocation(name);
+    GLCALL(glUniform1i(location, x));
+}
+
 void Shader::SetUniform1f(const std::string& name, float x) const
 {
-    GLuint location = GetUniformLocation(name);
+    GLint location = GetUniformLocation(name);
 	GLCALL(glUniform1f(location, x));
 }
 
 void Shader::SetUniform2f(const std::string& name, float x, float y) const
 {
-    GLuint location = GetUniformLocation(name);
+    GLint location = GetUniformLocation(name);
 	GLCALL(glUniform2f(location, x, y));
 }
 
@@ -89,5 +96,6 @@ GLint Shader::GetUniformLocation(const std::string & uniform) const
 		return m_Uniform_Location_Cache[uniform];
 
 	m_Uniform_Location_Cache[uniform] = glGetUniformLocation(m_RendererID, uniform.c_str());
+    ASSERT(m_Uniform_Location_Cache[uniform] != -1);
 	return m_Uniform_Location_Cache[uniform];
 }
